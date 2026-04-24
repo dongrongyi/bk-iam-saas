@@ -654,10 +654,17 @@ class InitBizGradeManagerTask(Task):
         systems = settings.INIT_GRADE_MANAGER_SYSTEM_LIST
         bk_sops_system = "bk_sops"
         bk_cmdb_system = "bk_cmdb"
+        bk_hcm_system = "bk-hcm"
+        # 遍历各个需要初始化的系统
         for system_id in systems:
             if system_id == bk_sops_system:
                 instance = ResourceInstance(
                     system_id=bk_sops_system, type="project", id=data["project_id"], name=data["name"]
+                )
+            elif system_id == bk_hcm_system:
+                # 海垒系统关联的是 bk_cmdb 的 biz 资源
+                instance = ResourceInstance(
+                    system_id=bk_cmdb_system, type="biz", id=data["bk_biz_id"], name=data["name"]
                 )
             else:
                 instance = ResourceInstance(

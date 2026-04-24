@@ -458,7 +458,17 @@ REQUESTS_MAX_RETRIES = env.int("REQUESTS_MAX_RETRIES", default=3)
 # Init Grade Manger system list
 INIT_GRADE_MANAGER_SYSTEM_LIST = env.list(
     "INIT_GRADE_MANAGER_SYSTEM_LIST",
-    default=["bk_job", "bk_cmdb", "bk_monitorv3", "bk_log_search", "bk_sops", "bk_nodeman", "bk_gsekit", "bk-bscp"],
+    default=[
+        "bk_job",
+        "bk_cmdb",
+        "bk_monitorv3",
+        "bk_log_search",
+        "bk_sops",
+        "bk_nodeman",
+        "bk_gsekit",
+        "bk-bscp",
+        "bk-hcm",
+    ],
 )
 
 # disable display systems
