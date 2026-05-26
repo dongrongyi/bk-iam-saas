@@ -19,11 +19,13 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from backend.apps.organization.models import User
 from backend.apps.subject.audit import SubjectPolicyDeleteAuditProvider
 from backend.audit.audit import audit_context_setter, view_audit_decorator
 from backend.biz.action import ActionBean, ActionBeanList, ActionBiz
 from backend.biz.action_group import ActionGroupBiz
 from backend.biz.constants import PolicyTag
+from backend.biz.helper import get_user_expired_groups_policies
 from backend.biz.open import ApplicationPolicyListCache
 from backend.biz.policy import (
     ConditionBean,
@@ -234,10 +236,6 @@ class PolicyExpireSoonViewSet(GenericViewSet):
             try:
                 expired_at_before_int = int(expired_at_before)
                 expired_at_after_int = int(expired_at_after)
-
-                # 使用与邮件相同的过滤逻辑获取选中项
-                from backend.apps.organization.models import User
-                from backend.biz.helper import get_user_expired_groups_policies
 
                 # 获取当前用户对象
                 user = User.objects.get(username=request.user.username)

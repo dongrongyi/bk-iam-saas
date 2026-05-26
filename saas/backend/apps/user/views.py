@@ -22,6 +22,7 @@ from backend.apps.group.audit import GroupMemberDeleteAuditProvider
 from backend.apps.group.filters import GroupFilter
 from backend.apps.group.models import Group
 from backend.apps.group.serializers import GroupSearchSLZ
+from backend.apps.organization.models import User
 from backend.apps.policy.serializers import PolicySLZ
 from backend.apps.role.serializers import RoleCommonActionSLZ
 from backend.apps.subject.serializers import SubjectGroupSLZ, UserRelationSLZ
@@ -29,6 +30,7 @@ from backend.apps.user.models import UserProfile
 from backend.audit.audit import audit_context_setter, view_audit_decorator
 from backend.biz.constants import PermissionTypeEnum
 from backend.biz.group import GroupBiz
+from backend.biz.helper import get_user_expired_groups_policies
 from backend.biz.permission_audit import QueryAuthorizedSubjects
 from backend.biz.policy import ConditionBean, InstanceBean, PathNodeBeanList, PolicyOperationBiz, PolicyQueryBiz
 from backend.biz.role import ActionScopeDiffer, RoleBiz
@@ -168,10 +170,6 @@ class UserGroupRenewViewSet(GenericViewSet):
             try:
                 expired_at_before_int = int(expired_at_before)
                 expired_at_after_int = int(expired_at_after)
-
-                # 使用与邮件相同的过滤逻辑获取选中项
-                from backend.apps.organization.models import User
-                from backend.biz.helper import get_user_expired_groups_policies
 
                 # 获取当前用户对象
                 user = User.objects.get(username=request.user.username)
