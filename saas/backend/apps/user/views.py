@@ -158,13 +158,12 @@ class UserGroupRenewViewSet(GenericViewSet):
         limit, offset = CustomPageNumberPagination().get_limit_offset_pair(request)
         expired_at = get_soon_expire_ts()
 
-        # 获取时间参数
+        # 获取时间参数，如果提供了expired_at_before和expired_at_after参数，说明来自续期邮件跳转
         expired_at_before = request.query_params.get("expired_at_before")
         expired_at_after = request.query_params.get("expired_at_after")
 
         selected_group_ids = []
 
-        # 如果提供了expired_at_before和expired_at_after参数，则使用与邮件相同的逻辑
         # 计算当前时间段内邮件通知的选中项
         if expired_at_before and expired_at_after:
             try:
@@ -174,8 +173,8 @@ class UserGroupRenewViewSet(GenericViewSet):
                 # 获取当前用户对象
                 user = User.objects.get(username=request.user.username)
 
-                # 调用与邮件通知相同的函数
-                groups, policies = get_user_expired_groups_policies(user, expired_at_before_int, expired_at_after_int)
+                # 获取需要勾选的用户组
+                groups, _ = get_user_expired_groups_policies(user, expired_at_before_int, expired_at_after_int)
 
                 # 获取需要勾选的用户组ID列表
                 selected_group_ids = [group.id for group in groups]
@@ -184,7 +183,7 @@ class UserGroupRenewViewSet(GenericViewSet):
                 # 如果参数格式错误或用户不存在，忽略选中项计算
                 pass
 
-        # 始终返回15天内即将过期的用户组列表
+        # 权限续期页用户组列表
         if system_id:
             count, relations = self.group_biz.list_paging_system_subject_group_before_expired_at(
                 system_id, subject, expired_at=expired_at, limit=limit, offset=offset
