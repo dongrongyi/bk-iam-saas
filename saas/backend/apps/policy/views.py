@@ -11,6 +11,7 @@ specific language governing permissions and limitations under the License.
 from itertools import chain, groupby
 from typing import List
 
+from django.conf import settings
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
 from pydantic.tools import parse_obj_as
@@ -221,9 +222,41 @@ class PolicyExpireSoonViewSet(GenericViewSet):
     def list(self, request, *args, **kwargs):
         subject = SvcSubject.from_username(request.user.username)
 
-        data = self.biz.list_expired(subject, get_soon_expire_ts())
+        # 获取查询参数
+        expired_at_before = request.query_params.get("expired_at_before")
+        expired_at_after = request.query_params.get("expired_at_after")
 
-        return Response([one.dict() for one in data])
+        selected_ids = []
+
+        # 如果提供了expired_at_before和expired_at_after参数，则使用与邮件相同的逻辑
+        # 计算当前时间段内邮件通知的选中项
+        if expired_at_before and expired_at_after:
+            try:
+                expired_at_before_int = int(expired_at_before)
+                expired_at_after_int = int(expired_at_after)
+
+                # 使用与邮件相同的过滤逻辑获取选中项
+                from backend.apps.organization.models import User
+                from backend.biz.helper import get_user_expired_groups_policies
+
+                # 获取当前用户对象
+                user = User.objects.get(username=request.user.username)
+
+                # 调用与邮件通知相同的函数
+                groups, policies = get_user_expired_groups_policies(user, expired_at_before_int, expired_at_after_int)
+
+                # 获取需要勾选的权限ID列表
+                selected_ids = [policy.id for policy in policies]
+
+            except (ValueError, User.DoesNotExist):
+                # 如果参数格式错误或用户不存在，忽略选中项计算
+                pass
+
+        # 始终返回15天内即将过期的权限列表
+        all_expired_policies = self.biz.list_expired(subject, get_soon_expire_ts())
+
+        # 返回所有权限和需要勾选的权限ID列表
+        return Response({"data": [one.dict() for one in all_expired_policies], "selected_ids": selected_ids})
 
 
 class RelatedPolicyViewSet(GenericViewSet):
