@@ -11,7 +11,6 @@ specific language governing permissions and limitations under the License.
 from itertools import chain, groupby
 from typing import List
 
-from django.conf import settings
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
 from pydantic.tools import parse_obj_as

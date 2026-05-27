@@ -11,7 +11,6 @@ specific language governing permissions and limitations under the License.
 from copy import copy
 from typing import List, Optional
 
-from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, serializers, status
 from rest_framework.response import Response

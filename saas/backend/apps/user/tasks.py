@@ -80,7 +80,6 @@ class SendUserExpireRemindMailTask(Task):
         if not groups:
             params["tab"] = "custom"
         url = self.base_url + "?" + urlencode(params)
-        print("url:", url)
         if NotificationTypeEnum.MAIL.value in notification_types:
             mail_content = render_to_string(
                 "user_expired_mail.html",
