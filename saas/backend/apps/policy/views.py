@@ -253,7 +253,8 @@ class PolicyExpireSoonViewSet(GenericViewSet):
 
         # 返回所有权限和需要勾选的权限ID列表
         return Response(
-            {"results": [one.dict() for one in all_expired_policies], "selected_policy_ids": selected_policy_ids}
+            [one.dict() for one in all_expired_policies]
+            # {"results": [one.dict() for one in all_expired_policies], "selected_policy_ids": selected_policy_ids}
         )
 
 
