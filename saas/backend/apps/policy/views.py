@@ -227,7 +227,7 @@ class PolicyExpireSoonViewSet(GenericViewSet):
         expired_at_before = request.query_params.get("expired_at_before")
         expired_at_after = request.query_params.get("expired_at_after")
 
-        selected_policy_ids = []
+        selected_policies_data = []
 
         # 计算当前时间段内邮件通知的选中项
         if expired_at_before and expired_at_after:
@@ -239,10 +239,12 @@ class PolicyExpireSoonViewSet(GenericViewSet):
                 user = User.objects.get(username=request.user.username)
 
                 # 获取需要勾选的自定义权限
-                _, policies = get_user_expired_groups_policies(user, expired_at_before_int, expired_at_after_int)
+                _, selected_policies = get_user_expired_groups_policies(
+                    user, expired_at_before_int, expired_at_after_int
+                )
 
-                # 获取需要勾选的权限ID列表
-                selected_policy_ids = [policy.id for policy in policies]
+                # 获取需要勾选的权限相关信息
+                selected_policies_data = [{"id": one.id, "expired_at": one.expired_at} for one in selected_policies]
 
             except (ValueError, User.DoesNotExist):
                 # 如果参数格式错误或用户不存在，忽略选中项计算
@@ -251,10 +253,9 @@ class PolicyExpireSoonViewSet(GenericViewSet):
         # 用户续期页的自定义权限列表
         all_expired_policies = self.biz.list_expired(subject, get_soon_expire_ts())
 
-        # 返回所有权限和需要勾选的权限ID列表
+        # 返回所有权限和需要勾选的权限数据
         return Response(
-            [one.dict() for one in all_expired_policies]
-            # {"results": [one.dict() for one in all_expired_policies], "selected_policy_ids": selected_policy_ids}
+            {"results": [one.dict() for one in all_expired_policies], "selected_items": selected_policies_data}
         )
 
 

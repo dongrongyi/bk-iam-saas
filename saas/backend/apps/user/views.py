@@ -161,7 +161,7 @@ class UserGroupRenewViewSet(GenericViewSet):
         expired_at_before = request.query_params.get("expired_at_before")
         expired_at_after = request.query_params.get("expired_at_after")
 
-        selected_group_ids = []
+        selected_groups = []
 
         # 计算当前时间段内邮件通知的选中项
         if expired_at_before and expired_at_after:
@@ -173,10 +173,9 @@ class UserGroupRenewViewSet(GenericViewSet):
                 user = User.objects.get(username=request.user.username)
 
                 # 获取需要勾选的用户组
-                groups, _ = get_user_expired_groups_policies(user, expired_at_before_int, expired_at_after_int)
-
-                # 获取需要勾选的用户组ID列表
-                selected_group_ids = [group.id for group in groups]
+                selected_groups, _ = get_user_expired_groups_policies(
+                    user, expired_at_before_int, expired_at_after_int
+                )
 
             except (ValueError, User.DoesNotExist):
                 # 如果参数格式错误或用户不存在，忽略选中项计算
@@ -193,7 +192,14 @@ class UserGroupRenewViewSet(GenericViewSet):
             )
 
         slz = GroupSLZ(instance=relations, many=True)
-        return Response({"count": count, "results": slz.data, "selected_group_ids": selected_group_ids})
+
+        # 将selected_groups转换为只包含必需字段的字典列表
+        selected_items = [
+            {"id": group.id, "name": group.name, "description": group.description, "expired_at": group.expired_at}
+            for group in selected_groups
+        ]
+
+        return Response({"count": count, "results": slz.data, "selected_items": selected_items})
 
 
 class UserProfileNewbieViewSet(GenericViewSet):
