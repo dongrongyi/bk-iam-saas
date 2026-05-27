@@ -86,16 +86,18 @@ class GroupAuthorizationTask(StepTask):
     def run(self, item: Any):
         lock = GroupAuthorizeLock.objects.get(id=item)
 
-        template_id = lock.template_id
-        system_id = lock.system_id
-        policies = parse_obj_as(List[PolicyBean], lock.data["actions"])
-        # 授权
-        if template_id != 0:
-            self.template_biz.grant_subject(system_id, template_id, self.subject, policies)
-        else:
-            self.policy_biz.alter(system_id, self.subject, policies)
-
-        lock.delete()
+        try:
+            template_id = lock.template_id
+            system_id = lock.system_id
+            policies = parse_obj_as(List[PolicyBean], lock.data["actions"])
+            # 授权
+            if template_id != 0:
+                self.template_biz.grant_subject(system_id, template_id, self.subject, policies)
+            else:
+                self.policy_biz.alter(system_id, self.subject, policies)
+        finally:
+            # 无论授权是否成功, 都需要清理锁, 否则会导致用户组无法再次授权
+            lock.delete()
 
     def on_success(self):
         pass
